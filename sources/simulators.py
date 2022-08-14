@@ -18,7 +18,7 @@ class Simulator:
         self.clusters = clusters
         self.nbClusters = len(self.clusters)
         self.tags = np.concatenate([np.full((self.clusters[i].nbParticles,), i) for i in range(len(self.clusters))])
-        self.simulatorDimension = max([i.initPosition.shape[1] for i in self.clusters])
+        self.simulatorDimension = max(i.initPosition.shape[1] for i in self.clusters)
         self.engine = ClusterEngine(self.clusters, self.simulatorDimension, mode, softeningLength, theta, percentage)
         self.simulatorTime = 0
 
@@ -35,47 +35,48 @@ class Simulator:
         self.__init__(self.clusters, self.execDir, mode, softeningLength, theta, percentage)
 
     def initializeLogs(self):
-        if self.isNew:
-            logsPath = os.path.join(self.execDir, 'logs')
-            if not os.path.exists(logsPath):
-                os.mkdir(logsPath)
-            logFile = sessionName()
-            self.sessionPath = os.path.join(logsPath, logFile)
-            if not os.path.exists(self.sessionPath):
-                os.mkdir(self.sessionPath)
-            ###### MASSES FILE ######
-            massesLines = []
-            for i in range(self.nbClusters):
-                massesLines.append([])
-                for j in range(self.clusters[i].nbParticles):
-                    massesLines[i].append(str(self.clusters[i].masses[j]))
-                massesLines[i] = ' '.join(massesLines[i]) + '\n'
-            self.massesFile = os.path.join(self.sessionPath, 'MassesConfiguration.config')
-            with open(self.massesFile, 'w') as file:
-                for i in range(len(massesLines)):
-                    file.write(massesLines[i])
-            ###### CLUSTERS FILE ######
-            clustersLines = ['CLUSTER NB_PARTICLES DARK_MATTER INITIAL_X INITIAL_V DIMENSION NB_FRAMES\n']
-            for i in range(self.nbClusters):
-                name = self.clusters[i].name
-                nbParticles = str(self.clusters[i].nbParticles)
-                darkPercentage = str(self.clusters[i].darkPercentage)
-                initialX, initialV = '', ''
-                dimension = len(self.clusters[i].initPosition[0])
-                for j in range(dimension):
-                    initialX += str(self.clusters[i].initPosition[0][j]) + ','
-                    initialV += str(self.clusters[i].initVelocity[0][j]) + ','
+        if not self.isNew:
+            return
+        logsPath = os.path.join(self.execDir, 'logs')
+        if not os.path.exists(logsPath):
+            os.mkdir(logsPath)
+        logFile = sessionName()
+        self.sessionPath = os.path.join(logsPath, logFile)
+        if not os.path.exists(self.sessionPath):
+            os.mkdir(self.sessionPath)
+        ###### MASSES FILE ######
+        massesLines = []
+        for i in range(self.nbClusters):
+            massesLines.append([])
+            for j in range(self.clusters[i].nbParticles):
+                massesLines[i].append(str(self.clusters[i].masses[j]))
+            massesLines[i] = ' '.join(massesLines[i]) + '\n'
+        self.massesFile = os.path.join(self.sessionPath, 'MassesConfiguration.config')
+        with open(self.massesFile, 'w') as file:
+            for massesLine in massesLines:
+                file.write(massesLine)
+        ###### CLUSTERS FILE ######
+        clustersLines = ['CLUSTER NB_PARTICLES DARK_MATTER INITIAL_X INITIAL_V DIMENSION NB_FRAMES\n']
+        for i in range(self.nbClusters):
+            name = self.clusters[i].name
+            nbParticles = str(self.clusters[i].nbParticles)
+            darkPercentage = str(self.clusters[i].darkPercentage)
+            initialX, initialV = '', ''
+            dimension = len(self.clusters[i].initPosition[0])
+            for j in range(dimension):
+                initialX += f'{str(self.clusters[i].initPosition[0][j])},'
+                initialV += f'{str(self.clusters[i].initVelocity[0][j])},'
                 # Creating Line
-                line = name + ' ' + nbParticles + ' ' + darkPercentage + ' ' + initialX[:-1]
-                line += ' ' + initialV[:-1] + ' ' + str(dimension) + ' ' + str(self.nbSaves) + '\n'
-                clustersLines.append(line)
-            self.clustersFile = os.path.join(self.sessionPath, 'ClustersConfiguration.config')
-            with open(self.clustersFile, 'w') as file:
-                for i in range(len(clustersLines)):
-                    file.write(clustersLines[i])
-            ###### POSITIONS FILE ######
-            self.snapshotsFile = os.path.join(self.sessionPath, 'ClustersPositions.config')
-            self.saveState()
+            line = f'{name} {nbParticles} {darkPercentage} {initialX[:-1]}'
+            line += f' {initialV[:-1]} {dimension} {str(self.nbSaves)}' + '\n'
+            clustersLines.append(line)
+        self.clustersFile = os.path.join(self.sessionPath, 'ClustersConfiguration.config')
+        with open(self.clustersFile, 'w') as file:
+            for clustersLine in clustersLines:
+                file.write(clustersLine)
+        ###### POSITIONS FILE ######
+        self.snapshotsFile = os.path.join(self.sessionPath, 'ClustersPositions.config')
+        self.saveState()
 
     def saveState(self):
         modes = ['a', 'w']

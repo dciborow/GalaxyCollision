@@ -10,14 +10,10 @@ from sources.common.generation import generateDisk3D, generateDisk2D, generateUn
 
 
 def loadState(fileObject, dimension=3):
-    data = []
     line = fileObject.readline().rstrip('\n')
-    data.append(float(line))
-    if dimension == 2:
-        nbStateLines = 5
-    else:
-        nbStateLines = 7
-    for i in range(1, nbStateLines):
+    data = [float(line)]
+    nbStateLines = 5 if dimension == 2 else 7
+    for _ in range(1, nbStateLines):
         line = fileObject.readline().rstrip('\n')
         data.append(np.array(String2FloatList(line)))
     return data
@@ -80,8 +76,7 @@ def plotCumulativeMass(cluster):
     indices = radii.argsort()
     print(indices)
     masses = [cluster.masses[indices[0]]]
-    for i in range(1, n):
-        masses.append(masses[-1] + cluster.masses[indices[i]])
+    masses.extend(masses[-1] + cluster.masses[indices[i]] for i in range(1, n))
     plt.scatter(np.sort(radii), masses, s=3, c='r')
     plt.show()
 
@@ -148,7 +143,7 @@ def plotUniformSphere(nbStars=1000, percentage=35):
 
 
 def createGIF2D(outputPath, fps=25, nImages=400, size=10):
-    gifName = os.path.basename(outputPath) + '.gif'
+    gifName = f'{os.path.basename(outputPath)}.gif'
     gifPath = os.path.join(outputPath, gifName)
     images = []
     fig = plt.figure(figsize=(5, 5))
@@ -161,17 +156,26 @@ def createGIF2D(outputPath, fps=25, nImages=400, size=10):
     clustersFile = os.path.join(outputPath, 'ClustersConfiguration.config')
     parameters = loadInfo(clustersFile)
     print(parameters)
-    simulatorDimension = max([int(parameter) for parameter in parameters['DIMENSION']])
-    nbSaves = min([int(parameter) for parameter in parameters['NB_FRAMES']])
+    simulatorDimension = max(
+        int(parameter) for parameter in parameters['DIMENSION']
+    )
+
+    nbSaves = min(int(parameter) for parameter in parameters['NB_FRAMES'])
     if nImages > nbSaves:
         nImages = nbSaves
     nbClusters = len(parameters['DIMENSION'])
     ###### Creating Tags ######
     particlesTags = []
     for i in range(nbClusters):
-        particlesTags = particlesTags + [i for j in range(int(parameters['NB_PARTICLES'][i]))]
+        particlesTags = particlesTags + [
+            i for _ in range(int(parameters['NB_PARTICLES'][i]))
+        ]
+
     particlesTags = np.array(particlesTags)
-    assert simulatorDimension == 2, 'Dimension Error : Simulator dimension should be 2, not ' + str(simulatorDimension)
+    assert (
+        simulatorDimension == 2
+    ), f'Dimension Error : Simulator dimension should be 2, not {str(simulatorDimension)}'
+
     ###### Reading Positions ######
     print("########## DISPLAYING ##########")
     with open(os.path.join(outputPath, 'ClustersPositions.config'), "r") as file:
@@ -212,13 +216,19 @@ def showcase2D(outputPath):
     ###### Reading Configurations ######
     clustersFile = os.path.join(outputPath, 'ClustersConfiguration.config')
     parameters = loadInfo(clustersFile)
-    simulatorDimension = max([int(parameter) for parameter in parameters['DIMENSION']])
-    nbSaves = min([int(parameter) for parameter in parameters['NB_FRAMES']])
+    simulatorDimension = max(
+        int(parameter) for parameter in parameters['DIMENSION']
+    )
+
+    nbSaves = min(int(parameter) for parameter in parameters['NB_FRAMES'])
     nbClusters = len(parameters['DIMENSION'])
     ###### Creating Tags ######
     particlesTags = []
     for i in range(nbClusters):
-        particlesTags = particlesTags + [i for j in range(int(parameters['NB_PARTICLES'][i]))]
+        particlesTags = particlesTags + [
+            i for _ in range(int(parameters['NB_PARTICLES'][i]))
+        ]
+
     particlesTags = np.array(particlesTags)
     ###### Reading Positions ######
     print("########## DISPLAYING ##########")
@@ -233,7 +243,7 @@ def showcase2D(outputPath):
         plt.axis('off')
         fig.show()
         plt.pause(1)
-        for i in range(nbSaves - 1):
+        for _ in range(nbSaves - 1):
             data = loadState(file, simulatorDimension)
             for j in range(nbClusters):
                 indices = particlesTags == j
@@ -254,13 +264,19 @@ def showcase3D(outputPath):
     ###### Reading Configurations ######
     clustersFile = os.path.join(outputPath, 'ClustersConfiguration.config')
     parameters = loadInfo(clustersFile)
-    simulatorDimension = max([int(parameter) for parameter in parameters['DIMENSION']])
-    nbSaves = min([int(parameter) for parameter in parameters['NB_FRAMES']])
+    simulatorDimension = max(
+        int(parameter) for parameter in parameters['DIMENSION']
+    )
+
+    nbSaves = min(int(parameter) for parameter in parameters['NB_FRAMES'])
     nbClusters = len(parameters['DIMENSION'])
     ###### Creating Tags ######
     particlesTags = []
     for i in range(nbClusters):
-        particlesTags = particlesTags + [i for j in range(int(parameters['NB_PARTICLES'][i]))]
+        particlesTags = particlesTags + [
+            i for _ in range(int(parameters['NB_PARTICLES'][i]))
+        ]
+
     particlesTags = np.array(particlesTags)
     ###### Reading Positions ######
     print("########## DISPLAYING ##########")
@@ -276,7 +292,7 @@ def showcase3D(outputPath):
         # plt.axis('off')
         fig.show()
         plt.pause(1)
-        for i in range(nbSaves - 1):
+        for _ in range(nbSaves - 1):
             data = loadState(file, simulatorDimension)
             for j in range(nbClusters):
                 indices = particlesTags == j

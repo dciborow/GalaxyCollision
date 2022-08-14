@@ -60,28 +60,25 @@ class OctTree:
                         self.children[0].insert(position, mass)
                     else:                 # Bottom
                         self.children[1].insert(position, mass)
-                else:                 # South
-                    if position[2] > mz:  # Top
-                        self.children[2].insert(position, mass)
-                    else:                 # Bottom
-                        self.children[3].insert(position, mass)
-            else:                 # West
-                if position[1] > my:  # North
-                    if position[2] > mz:  # Top
-                        self.children[4].insert(position, mass)
-                    else:  # Bottom
-                        self.children[5].insert(position, mass)
-                else:                 # South
-                    if position[2] > mz:  # Top
-                        self.children[6].insert(position, mass)
-                    else:  # Bottom
-                        self.children[7].insert(position, mass)
+                elif position[2] > mz:  # Top
+                    self.children[2].insert(position, mass)
+                else:                 # Bottom
+                    self.children[3].insert(position, mass)
+            elif position[1] > my:  # North
+                if position[2] > mz:  # Top
+                    self.children[4].insert(position, mass)
+                else:  # Bottom
+                    self.children[5].insert(position, mass)
+            elif position[2] > mz:  # Top
+                self.children[6].insert(position, mass)
+            else:  # Bottom
+                self.children[7].insert(position, mass)
         ###### RECALCULATING CENTRE OF MASS ######
         self.nbObjects += 1
         self.getCenter()
 
     def forces(self, position):
-        if not type(position).__module__ == np.__name__:
+        if type(position).__module__ != np.__name__:
             position = np.array([position])
         width = abs(self.x1 - self.x2)
         vector = self.centreMassX - position
@@ -90,21 +87,17 @@ class OctTree:
             ratio = width / distance
             if ratio < self.theta or self.allNoneChildren():
                 acceleration = (self.gravitationCst * self.centreMass * vector) / (distance + self.softLength) ** 3
-                return acceleration
             else:
                 acceleration = np.array([0.0, 0.0, 0.0])
                 for i in self.children:
                     if isinstance(i, OctTree) and i.nbObjects != 0:
                         acceleration += i.forces(position)
-                return acceleration
+            return acceleration
         else:
             return np.array([0, 0, 0])
 
     def allNoneChildren(self):
-        for i in self.children:
-            if i is not None:
-                return False
-        return True
+        return all(i is None for i in self.children)
 
 
 class QuadTree:
@@ -153,17 +146,16 @@ class QuadTree:
                     self.children[0].insert(position, mass)
                 else:                 # South
                     self.children[1].insert(position, mass)
-            else:                 # West
-                if position[1] > my:  # North
-                    self.children[2].insert(position, mass)
-                else:                 # South
-                    self.children[3].insert(position, mass)
+            elif position[1] > my:  # North
+                self.children[2].insert(position, mass)
+            else:                 # South
+                self.children[3].insert(position, mass)
         ###### RECALCULATING CENTRE OF MASS ######
         self.nbObjects += 1
         self.getCenter()
 
     def forces(self, position):
-        if not type(position).__module__ == np.__name__:
+        if type(position).__module__ != np.__name__:
             position = np.array([position])
         width = abs(self.x1 - self.x2)
         vector = position - self.centreMassX
@@ -172,21 +164,17 @@ class QuadTree:
             ratio = width / distance
             if ratio < self.theta or self.allNoneChildren():
                 acceleration = (self.gravitationCst * self.centreMass * vector) / (distance + self.softLength) ** 3
-                return acceleration
             else:
                 acceleration = np.array([0.0, 0.0])
                 for i in self.children:
                     if isinstance(i, QuadTree) and i.nbObjects != 0:
                         acceleration += i.forces(position)
-                return acceleration
+            return acceleration
         else:
             return np.array([0, 0])
 
     def allNoneChildren(self):
-        for i in self.children:
-            if i is not None:
-                return False
-        return True
+        return all(i is None for i in self.children)
 
 
 class ClusterEngine:
