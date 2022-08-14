@@ -19,26 +19,26 @@ def str_to_float_list(string):
 def session_name():
     t0 = time.time()
     struct = time.localtime(t0)
-    string = str(struct.tm_year) + '-'
+    string = f'{str(struct.tm_year)}-'
     n_months = str(struct.tm_mon)  # MONTHS
     if len(n_months) == 1:
-        n_months = '0' + n_months
+        n_months = f'0{n_months}'
     string = string + n_months + '-'
     n_days = str(struct.tm_mday)  # DAYS
     if len(n_months) == 1:
-        n_days = '0' + n_days
+        n_days = f'0{n_days}'
     string = string + n_days + '-'
     n_hours = str(struct.tm_hour)  # HOURS
     if len(n_hours) == 1:
-        n_hours = '0' + n_hours
+        n_hours = f'0{n_hours}'
     string = string + n_hours + '-'
     n_mins = str(struct.tm_min)  # MINUTES
     if len(n_mins) == 1:
-        n_mins = '0' + n_mins
+        n_mins = f'0{n_mins}'
     string = string + n_mins + '-'
     n_secs = str(struct.tm_sec)  # SECONDS
     if len(n_secs) == 1:
-        n_secs = '0' + n_secs
+        n_secs = f'0{n_secs}'
     string = string + n_secs + '.txt'
     return string
 
@@ -76,11 +76,7 @@ def velocity(X, G, M):
 def select_list(l, n):
     m = len(l)
     skip = int(m / n)
-    new_l = []
-    for i in range(m):
-        if i % skip == 0:
-            new_l.append(l[i])
-    return new_l
+    return [l[i] for i in range(m) if i % skip == 0]
 
 
 def initial_trajectory(periapsis, eccentricity, true_anomaly, M):
@@ -102,8 +98,10 @@ class GalaxyRing2D:
     def __init__(self, radii, particles, central_mass, halo_r):
         self.center_velocity = None
         self.center_position = None
-        assert len(radii) == len(particles), "len(radii): " + str(len(radii)) + " not equal to len(particles): " + str(
-            len(particles))
+        assert len(radii) == len(
+            particles
+        ), f"len(radii): {len(radii)} not equal to len(particles): {len(particles)}"
+
         G = gravitational_constant()
         positions = []
         velocities = []
@@ -385,10 +383,9 @@ class Galaxy_Collision:
 
     def load_state(self, file):
         assert not self.is_new, "ERROR : The save file has yet to be rendered, try doing calculations first."
-        data = []
         line = file.readline()
-        data.append(float(line))
-        for i in range(1, 9):
+        data = [float(line)]
+        for _ in range(1, 9):
             line = file.readline()
             data.append(np.array(str_to_float_list(line)))
         return data
@@ -406,10 +403,10 @@ class Galaxy_Collision:
             for i in range(n_galaxies):
                 line = file.readline()
                 line = line.split()
-                gal = "GAL" + str(i)
-                k = initial_line.index(gal + 'MASS')
-                l = initial_line.index('N' + gal)
-                m = initial_line.index(gal + 'HALOR')
+                gal = f"GAL{str(i)}"
+                k = initial_line.index(f'{gal}MASS')
+                l = initial_line.index(f'N{gal}')
+                m = initial_line.index(f'{gal}HALOR')
                 mass = float(initial_line[k + 2])
                 particles = int(initial_line[l + 2])
                 halo_r = float(initial_line[m + 2])
@@ -424,12 +421,40 @@ class Galaxy_Collision:
             self.saves_file = session_name()
             new_path = self.current_dir + "\\logs\\" + self.saves_file
             with open(new_path, 'w') as file:
-                file.write('NFRAMES : ' + str(self.n_saves) + ' NGAL : ' + str(self.n_galaxies) + '\n')
+                file.write(
+                    f'NFRAMES : {str(self.n_saves)} NGAL : {str(self.n_galaxies)}'
+                    + '\n'
+                )
+
                 for i in range(self.n_galaxies):
-                    gal = "GAL" + str(i)
-                    file.write(gal + "MASS : " + str(self.galaxies[i].centralMass) +
-                               " N" + gal + " : " + str(self.galaxies[i].nbParticles) + " " +
-                               gal + "HALOR : " + str(self.galaxies[i].haloRadius) + ' \n')
+                    gal = f"GAL{str(i)}"
+                    file.write(
+                        (
+                            (
+                                (
+                                    (
+                                        (
+                                            (
+                                                (
+                                                    f"{gal}MASS : {str(self.galaxies[i].centralMass)}"
+                                                    + " N"
+                                                )
+                                                + gal
+                                            )
+                                            + " : "
+                                        )
+                                        + str(self.galaxies[i].nbParticles)
+                                        + " "
+                                    )
+                                    + gal
+                                )
+                                + "HALOR : "
+                            )
+                            + str(self.galaxies[i].haloRadius)
+                            + ' \n'
+                        )
+                    )
+
             self.save_state()
         new_path = self.current_dir + "\\logs\\" + self.saves_file
         initial_time = self.time
@@ -441,7 +466,11 @@ class Galaxy_Collision:
         print("########## Calculations Finished ##########")
         with open(new_path, "r") as file:
             lines = file.readlines()
-            lines[0] = 'NFRAMES : ' + str(self.n_saves) + ' NGAL : ' + str(self.n_galaxies) + '\n'
+            lines[0] = (
+                f'NFRAMES : {str(self.n_saves)} NGAL : {str(self.n_galaxies)}'
+                + '\n'
+            )
+
         with open(new_path, "w") as file:
             file.writelines(lines)
         self.is_new = False
@@ -450,7 +479,7 @@ class Galaxy_Collision:
         assert not self.is_new, "ERROR : Cannot display animation since no calculations have taken place."
         if create_gif:
             assert gif_fps * gif_duration < self.n_saves, "ERROR : gif_duration or gif_fps is to high for the " \
-                                                          "available number of frames "
+                                                              "available number of frames "
             if gif_name is None:
                 gif_name = self.saves_file.replace('.txt', '.gif')
             gifs_dir = self.current_dir + "\\gifs"
@@ -468,7 +497,7 @@ class Galaxy_Collision:
         gif_path = self.current_dir + "\\gifs\\" + gif_name
         with open(new_path, "r") as file:
             file.readline()
-            for i in range(self.n_galaxies):  # Skips the header
+            for _ in range(self.n_galaxies):
                 file.readline()
             # PLOTTING FIRST FRAME
             data = self.load_state(file)
@@ -482,7 +511,7 @@ class Galaxy_Collision:
             fig.show()
             plt.pause(3)
             # MAIN LOOP
-            for i in range(1, self.n_saves):
+            for _ in range(1, self.n_saves):
                 plt.pause(0.04)
                 data = self.load_state(file)
                 Offset_c = np.array([data[5], data[6]]).T

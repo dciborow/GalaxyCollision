@@ -52,8 +52,10 @@ class MasslessGalaxy(ObjectCluster2D):
 
 class RingsMasslessGalaxy(MasslessGalaxy):
     def __init__(self, radii, particles, centralMass, haloRadius):
-        assert len(radii) == len(particles), "len(radii): " + str(len(radii)) + " not equal to len(particles): " + str(
-            len(particles))
+        assert len(radii) == len(
+            particles
+        ), f"len(radii): {len(radii)} not equal to len(particles): {len(particles)}"
+
         G = gravitationalConstant()
         positions = []
         velocities = []

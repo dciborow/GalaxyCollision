@@ -102,20 +102,16 @@ def uniformSphereDistribution(r, r0=1, M=1):
 
 
 def isothermalSphereDistribution(r, p0=1, r0=1):
-    density = p0 * (r / r0) ** (-2)
-    return density
+    return p0 * (r / r0) ** (-2)
 
 
 def sphericalPlummerDistribution(r, r0=1, M=1):
-    density = (3 * M) / (4 * np.pi) * (r0 ** 2) / (r0 ** 2 + r ** 2) ** (3 / 2)
-    return density
+    return (3 * M) / (4 * np.pi) * (r0 ** 2) / (r0 ** 2 + r ** 2) ** (3 / 2)
 
 
 def sphericalHernquistDistribution(r, r0=1, M=1):
-    density = M / (2 * np.pi) * r0 / (r * (r0 + r) ** 3)
-    return density
+    return M / (2 * np.pi) * r0 / (r * (r0 + r) ** 3)
 
 
 def sphericalJaffeDistribution(r, r0=1, M=1):
-    density = M / (4 * np.pi) * r0 / (r ** 2 * (r0 + r) ** 2)
-    return density
+    return M / (4 * np.pi) * r0 / (r ** 2 * (r0 + r) ** 2)

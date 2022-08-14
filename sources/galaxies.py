@@ -11,11 +11,11 @@ from sources.common.generation import generateDisk2D, generateUniformSphere, gen
 
 class ObjectCluster:
     def __init__(self, name, positions, velocities, masses, darkPercentage):
-        if not type(positions).__module__ == np.__name__:
+        if type(positions).__module__ != np.__name__:
             positions = np.array([positions])
-        if not type(velocities).__module__ == np.__name__:
+        if type(velocities).__module__ != np.__name__:
             velocities = np.array([velocities])
-        if not type(masses).__module__ == np.__name__:
+        if type(masses).__module__ != np.__name__:
             masses = np.array([masses])
         assert positions.shape == velocities.shape
         assert darkPercentage >= 0, 'Dark Matter Percentage needs to be between 0 and 100'
